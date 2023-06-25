@@ -2,7 +2,7 @@ SRCDIR = src
 HEADDIR = include
 LIBDIR = ./src
 
-CFLAGS = -W -Wall -Wextra -Wvla -fsanitize=address $(shell sdl2-config --cflags) -lSDL2 -lGL -lX11 -lpthread -lXrandr -lglfw -ldl -lglut -lm
+CFLAGS = -W -Wall -Wextra -Wvla -fsanitize=address $(shell sdl2-config --cflags) -lSDL2 -lGL -lpthread -lXrandr -lglfw -ldl -lglut -lm
 
 DEPENDENCIES = $(SRCDIR)/map.c
 
