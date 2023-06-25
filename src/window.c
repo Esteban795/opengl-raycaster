@@ -9,7 +9,7 @@ window window_create(int width, int height) {
 }
 
 void window_destroy(window win) {
-	SDL_Destroywindow(win->window);
+	SDL_DestroyWindow(win->window);
 	SDL_Quit();
 }
 
@@ -19,11 +19,10 @@ bool window_init(window win) {
 		printf("SDL Error (initialization) : %s\n", SDL_GetError());
 		return false;
 	}
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); //double buffering for better performance
-    win->window = SDL_Createwindow("OpenGL Raycaster made by Esteban795 on Github", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, win->width, win->height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    win->window = SDL_CreateWindow("OpenGL Raycaster made by Esteban795 on Github", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, win->width, win->height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if(win->window == NULL) {
         printf("SDL error (window initialization) : %s\n", SDL_GetError());
         return false;
@@ -32,14 +31,25 @@ bool window_init(window win) {
     if(win->context == NULL) {
         printf("SDL error (couldn't create OpenGL context) %s\n", SDL_GetError());
         return false;
-    }
-    // Use Vsync
-    if( SDL_GL_SetSwapInterval( 2 ) < 0 ) {
-        printf("SDL error (VSYNC not enabled) : %s\n", SDL_GetError());
+    } else {
+        #ifndef __EMSCRIPTEN__
+
+        glewExperimental = GL_TRUE; 
+        GLenum glewError = glewInit();
+        if( glewError != GLEW_OK ) {
+            printf("GLEW: Error initializing! %s\n", glewGetErrorString(glewError));
+        }
+
+        #endif
+        // Use Vsync
+        if( SDL_GL_SetSwapInterval( 2 ) < 0 ) {
+            printf("SDL error (VSYNC not enabled) : %s\n", SDL_GetError());
+        }
     }
     SDL_SetRelativeMouseMode(SDL_TRUE);
+    return true;
 }
 
-void windowSwap(window win) {
-    SDL_GL_Swapwindow(win->window);
+void window_swap(window win) {
+    SDL_GL_SwapWindow(win->window);
 }
