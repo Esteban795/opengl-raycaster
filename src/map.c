@@ -23,7 +23,9 @@ position get_player_pos(map m){
     return player_pos;
 }
 
-char* read_world(char* filename){
+char* read_world(char* filename,int* world_width,int* world_height){
+    *world_width = 0;
+    *world_height = 0;
     char* buffer;
     FILE* fp = fopen (filename ,"rb");
     fseek( fp , 0L , SEEK_END);
