@@ -67,6 +67,11 @@ double get_ray_depth(position player_pos,int map_x, int map_y, double dx, double
     return sqrt((player_pos.x - x) * (player_pos.x - x) + (player_pos.y - y) * (player_pos.y - y));
 }
 
+
+void print_ray(ray r){
+    printf("Ray : (%f; %u, %f)\n\n",r.depth,r.color,r.angle_of_incidence);
+}
+
 ray cast_ray(map m,position pos,double ray_angle,double player_angle){
     ray r;
     int map_x = (int) (pos.x / m->scale);
@@ -103,5 +108,6 @@ ray cast_ray(map m,position pos,double ray_angle,double player_angle){
     r.depth = fabs(cos(player_angle - ray_angle) / depth); //find distance to the plane of the player rather than to the player directly to avoid fisheye effect
     r.color = get_ray_color(curr);
     r.angle_of_incidence = get_incidence_angle(side,ray_angle);
+    //print_ray(r);
     return r;
 }

@@ -15,7 +15,7 @@
 #include "../include/ray.h"
 
 #define WIDTH 1024
-#define HEIGHT 768
+#define HEIGHT 768  
 #define NUM_THREADS 4
 
 const float quad_vertex_vata[] = { 
@@ -117,12 +117,9 @@ void* render_thread(void* thread_num) {
     int thread_end = thread_div * (*((int*)thread_num) + 1);
 
     for (int x = thread_start; x < thread_end; x++) {
-
-        ray ray = cast_ray(m, player_pos, player_angle + atan((x-(WIDTH/2))/focus_to_image), player_angle);
-
-        //ray.color = lerpColor(light_color, ray.color, sqrt(sin(ray.angle_of_incidence))); // Specular highlight
-
+        ray ray = cast_ray(m, player_pos, player_angle + atan((x - (WIDTH / 2)) / focus_to_image), player_angle);
         int wall_height = (int) (( HEIGHT / (ray.depth)));
+        printf("Ray depth : %f\n wall_height : %d\n\n",ray.depth,wall_height);
         for (int y = 0; y < HEIGHT; y++) {
             if (y > (HEIGHT - wall_height) / 2 && y < wall_height + (HEIGHT - wall_height) / 2) {
                 texture_data[(y * WIDTH + x) * 3] = ray.color >> 16;
@@ -271,6 +268,7 @@ char world[] =
     "b                 r          g"
     "b                 r          g"
     "b###################  ########";
+
 const int world_width = 30;
 const int world_height = 19;
 
@@ -280,14 +278,14 @@ int main(void){
     win = window_create(WIDTH, HEIGHT);
     m = create_map(world, world_width, world_height, world_scale);
     player_pos = get_player_pos(m);
-    
+    int mod_30 = 0;
     // thread args
-/*     pthread_t threads[NUM_THREADS];
+    pthread_t threads[NUM_THREADS];
     int thread_args[NUM_THREADS];
     for (int it = 0; it < NUM_THREADS; it++) {
         thread_args[it] = it;
     }
- */
+
     if (!window_init(win)) {
         printf("Failed to initialize SDL\n");
         return 0;
@@ -297,27 +295,26 @@ int main(void){
         printf("SDL initialized\n");
 
         shader_init(&shader, vertex_shader_source, fragment_shader_source);
-        printf("les shaders sont ok");
-/*         create_screen_texture();
+        printf("Shaders compiled successfully.\n");
+        create_screen_texture();
 
         glClearColor(0.5, 0.2, 0.5, 1.0);
-        create_quad_VAO(); */
+        create_quad_VAO();
 
         half_fov = 0.5 * (fov / 180.0f * M_PI);
         focus_to_image = (WIDTH / 2) / tan(half_fov);
 
-        uint64_t last_frame = SDL_GetTicks64();
-        uint64_t current_frame = SDL_GetTicks64();
-        uint64_t delta_time = 0;
+        int last_frame = SDL_GetTicks();
+        int current_frame = SDL_GetTicks();
+        int delta_time = 0;
         while (!quit) {
-
-            current_frame = SDL_GetTicks64();
+            current_frame = SDL_GetTicks();
             delta_time = current_frame - last_frame;
             last_frame = current_frame;
             // Poll for events
-/*             pollEvents();
-            updatePlayer(delta_time); */
-            //render(threads,thread_args);
+            pollEvents();
+            updatePlayer(delta_time);
+            render(threads,thread_args);
             mouse_move_x = 0;
         }
     }  
