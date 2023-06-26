@@ -43,10 +43,6 @@ const double fov = 100;
 double half_fov;
 double focus_to_image;
 const unsigned int light_color = 0xFFFFFF;
-
-/* const double max_fog_distance = 20;
-const double min_fog_distance = 2;
-const unsigned int fog_color = 0x87CEEB; */
 char texture_data[WIDTH * HEIGHT * 3];
 GLuint vao = -1;
 GLuint screen_texture = -1;
@@ -118,7 +114,7 @@ void* render_thread(void* thread_num) {
 
     for (int x = thread_start; x < thread_end; x++) {
         ray ray = cast_ray(m, player_pos, player_angle + atan((x - (WIDTH / 2)) / focus_to_image), player_angle);
-        int wall_height = (int) (( HEIGHT / (ray.depth)));
+        int wall_height = (int) HEIGHT / ray.depth;
         printf("Ray depth : %f\n wall_height : %d\n\n",ray.depth,wall_height);
         for (int y = 0; y < HEIGHT; y++) {
             if (y > (HEIGHT - wall_height) / 2 && y < wall_height + (HEIGHT - wall_height) / 2) {

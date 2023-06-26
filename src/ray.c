@@ -105,7 +105,7 @@ ray cast_ray(map m,position pos,double ray_angle,double player_angle){
     }
     enum Side side = get_side_hit(map_x,map_y,prev_map_x,prev_map_y);
     double depth = get_ray_depth(pos,map_x,map_y,dx,dy,m->scale,side) / m->scale;
-    r.depth = fabs(cos(player_angle - ray_angle) / depth); //find distance to the plane of the player rather than to the player directly to avoid fisheye effect
+    r.depth = fabs(cos(player_angle - ray_angle)) * depth;//fabs(cos(player_angle - ray_angle) / depth); //find distance to the plane of the player rather than to the player directly to avoid fisheye effect
     r.color = get_ray_color(curr);
     r.angle_of_incidence = get_incidence_angle(side,ray_angle);
     //print_ray(r);
