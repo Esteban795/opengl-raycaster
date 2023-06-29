@@ -74,7 +74,7 @@ ray cast_ray(map m, position position, double ray_angle, double player_angle) {
     double dx = -sin(ray_angle)/detail;
     double dy = cos(ray_angle)/detail;
     char curr;
-    do {
+    do { //ray marching
         march_x += dx;
         march_y += dy;
         prev_map_x = map_x;
