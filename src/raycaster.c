@@ -15,7 +15,6 @@
 #include "../include/lighting.h"
 
 
-
 #define WIDTH 1920
 #define HEIGHT 1080
 #define NUM_THREADS 4
@@ -54,29 +53,29 @@ pthread_t threads[NUM_THREADS];
 int thread_args[NUM_THREADS];
 
 map m;
-char world[] = 
-    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
-    "b                 g          g"
-    "b                 g          g"
-    "b                 g    p     g"
-    "b                 g          g"
-    "b                 g          g"
-    "b                 g          g"
-    "b     ggggggggggggg     #####g"
-    "b                 g          g"
-    "b  r              g          g"
-    "b                 g          g"
-    "b                            g"
-    "b                            g"
-    "b    gb           rrrrr    bbg"
-    "b                 r          g"
-    "b                 r          g"
-    "b                 r          g"
-    "b                 r          g"
-    "b###################  ########";
+/* char world[] = 
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+    "b                 g                                        g"                              
+    "b                 g                                        g"
+    "b                 g    p                                   g"
+    "b                 g                                        g"
+    "b                 g                                        g"
+    "b                 g                                        g"
+    "b     ggggggggggggg                                   #####g"
+    "b                 g                                        g"
+    "b  r              g                                        g"
+    "b                 g                                        g"
+    "b                                                          g"
+    "b                                                          g"
+    "b    gb           rrrrr                                  bbg"
+    "b                 r                                        g"
+    "b                 r                                        g"
+    "b                 r                                        g"
+    "b                 r                                        g"
+    "b###################  ########wwwwwwwwwwwwwwwwwwwwwwwwwwwwww";
 
 const int world_width = 30;
-const int world_height = 19;
+const int world_height = 19; */
 const double world_scale = 10;
 
 position player_position;
@@ -194,7 +193,7 @@ void update_player(uint64_t delta) {
     }
     float x_fraction;
     float y_fraction;
-    float mult = (delta /1000.0) * player_speed;
+    float mult = (delta / 1000.0) * player_speed;
     if ((keydown_z != keydown_s)) {
         mult = keydown_s ? -mult : mult;
         x_fraction = -sin(player_angle);
@@ -226,7 +225,7 @@ void poll_events() {
             case SDL_MOUSEMOTION:
                 mouse_move_x = event.motion.xrel; //updates mouse pos and camera accordingly
                 break;
-          const unsigned int light_color = 0xFFFFFF;  case SDL_KEYDOWN:
+            case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
                     case SDLK_ESCAPE:
                         quit = true;
@@ -279,7 +278,10 @@ void poll_events() {
     }
 }
 
-int main(void) {
+int main(int argc, char* argv[]) {
+    if (argc != 2)  return EXIT_FAILURE;
+    int world_height,world_width;
+    char* world = read_world(argv[1],&world_width,&world_height);
     win = window_create(WIDTH, HEIGHT);
     m = create_map(world, world_width, world_height, world_scale);
     player_position = get_player_pos(m);
@@ -318,5 +320,6 @@ int main(void) {
     glDeleteTextures(1, &screen_texture);
     window_destroy(win);
     shader_destroy(shader);
+    free(world);
     return 0;
 }

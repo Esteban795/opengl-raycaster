@@ -24,15 +24,13 @@ position get_player_pos(map m){
 }
 
 char* read_world(char* filename,int* world_width,int* world_height){
-    *world_width = 0;
-    *world_height = 0;
-    char* buffer;
-    FILE* fp = fopen (filename ,"rb");
-    fseek( fp , 0L , SEEK_END);
-    long text_size = ftell(fp);
-    rewind(fp);
-    buffer = calloc( 1, text_size + 1 );
-    fread( buffer , text_size, 1 , fp);
+    
+    FILE* fp = fopen (filename ,"r");
+    fscanf(fp,"%d %d\n",world_width,world_height);
+    int text_size = *world_height * *world_width;
+    char* buffer = malloc(sizeof(char) * (text_size + 1)); //null terminated string
+    fread( buffer,text_size,1, fp);
+    buffer[text_size] = '\0';
     fclose(fp);
     return buffer;
 }

@@ -1,19 +1,2 @@
-rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-b                 g          g
-b                 g          g
-b   P             g          g
-b                 g          g
-b                 g          g
-b                 g          g
-b     ggggggggggggg     #####g
-b                 g          g
-b  r              g          g
-b                 g          g
-b                            g
-b                            g
-b    gb           rrrrr    bbg
-b                 r          g
-b                 r          g
-b                 r          g
-b                 r          g
-b###################  ########
+30 19
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrb                 g          gb                 g          gb   p             g          gb                 g          gb                 g          gb                 g          gb     ggggggggggggg     #####gb                 g          gb  r              g          gb                 g          gb                            gb                            gb    gb           rrrrr    bbgb                 r          gb                 r          gb                 r          gb                 r          gb###################  ########
