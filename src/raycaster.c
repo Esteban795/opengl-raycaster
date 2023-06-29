@@ -15,7 +15,7 @@
 
 #define WIDTH 1920
 #define HEIGHT 1080
-#define NUM_THREADS 10
+#define NUM_THREADS 4
 
 const char* vertex_shader_source = "#version 300 es\n"
     "precision highp float;\n"
@@ -93,7 +93,7 @@ GLuint screen_texture = -1;
 bool quit = false;
 SDL_Event event;
 
-//I'm french so these are the usual keyboard layouts for us
+//I'm french so these are the usual keyboard layouts for us gamers
 bool keydown_z = false;
 bool keydown_q = false;
 bool keydown_s = false;
@@ -147,9 +147,9 @@ void* render_thread(void* thread_num) {
                 texture_data[(y*WIDTH + x)*3 + 1] = r.color >> 8;
                 texture_data[(y*WIDTH + x)*3 + 2] = r.color >> 0;
             } else { //no walls encountered
-                texture_data[(y*WIDTH + x)*3 + 0] = 0;
-                texture_data[(y*WIDTH + x)*3 + 1] = 0;
-                texture_data[(y*WIDTH + x)*3 + 2] = 0;
+                texture_data[(y*WIDTH + x)*3 + 0] = 20;
+                texture_data[(y*WIDTH + x)*3 + 1] = 20;
+                texture_data[(y*WIDTH + x)*3 + 2] = 20;
             }
         }
     }
@@ -313,6 +313,5 @@ int main(void) {
     glDeleteTextures(1, &screen_texture);
     window_destroy(win);
     shader_destroy(shader);
-    
     return 0;
 }
