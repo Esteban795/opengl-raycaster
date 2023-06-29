@@ -35,6 +35,7 @@ enum Side get_side_hit(int x, int y, int prev_x, int prev_y) {
     if (x < prev_x) return EAST;
     if (y > prev_y) return NORTH;
     if (y < prev_y) return SOUTH;
+    return SOUTH;
 }
 
 double get_ray_depth(position player_position, int map_x, int map_y, double dx, double dy, double scale, enum Side side) {

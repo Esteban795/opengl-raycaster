@@ -313,6 +313,6 @@ int main(void) {
     glDeleteTextures(1, &screen_texture);
     window_destroy(win);
     shader_destroy(shader);
-
+    
     return 0;
 }

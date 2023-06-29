@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAP_H
+#define MAP_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,3 +29,5 @@ map create_map(char* world,int width,int height, double scale);
 position get_player_pos(map m);
 
 char* read_world(char* filename,int* world_width,int* world_height);
+
+#endif
