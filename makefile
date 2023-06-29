@@ -4,7 +4,7 @@ LIBDIR = ./src
 
 DEBUGFLAGS = -W -Wall -Wextra -Wvla -fsanitize=address
 FLAGS = $(shell sdl2-config --cflags) -lSDL2 -lGL -lpthread -lglfw -lglut -lGLEW -lm
-DEPENDENCIES = $(SRCDIR)/map.c $(SRCDIR)/ray.c $(SRCDIR)/shader.c  $(SRCDIR)/window.c 
+DEPENDENCIES = $(SRCDIR)/map.c $(SRCDIR)/ray.c $(SRCDIR)/shader.c  $(SRCDIR)/window.c $(SRCDIR)/lighting.c
 
 build:
 	gcc $(SRCDIR)/raycaster.c -o ./bin/raycaster $(DEPENDENCIES) $(FLAGS) 

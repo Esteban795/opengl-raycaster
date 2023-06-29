@@ -6,10 +6,13 @@
 #include <GL/glew.h> // Glew must come before opengl or else it won't work
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+
+
 #include "../include/window.h"
 #include "../include/shader.h"
 #include "../include/map.h"
 #include "../include/ray.h"
+#include "../include/lighting.h"
 
 
 
@@ -92,7 +95,8 @@ GLuint vao = -1;
 GLuint screen_texture = -1;
 bool quit = false;
 SDL_Event event;
-
+const unsigned int light_color = 0xFFFFFF;
+ 
 //I'm french so these are the usual keyboard layouts for us gamers
 bool keydown_z = false;
 bool keydown_q = false;
@@ -139,17 +143,18 @@ void* render_thread(void* thread_num) {
     int thread_start = thread_div * *((int*)thread_num);
     int thread_end = thread_div * (*((int*)thread_num) + 1);
     for (int x = thread_start; x < thread_end; x++) {
-        ray r = cast_ray(m, player_position, player_angle + atan((x-(WIDTH/2))/focus_to_image), player_angle);
-        int wall_height = (int) (( HEIGHT / (r.depth)));
+        ray r = cast_ray(m, player_position, player_angle + atan((x - (WIDTH / 2)) / focus_to_image), player_angle);
+        r.color = colors_linear_interpolation(light_color,r.color,sqrt(sin(r.angle_of_incidence)));
+        int wall_height = (int) (HEIGHT / r.depth);
         for (int y = 0; y < HEIGHT; y++) {
-            if (y > (HEIGHT-wall_height)/2 && y < wall_height+(HEIGHT-wall_height)/2) { //wall detected
-                texture_data[(y*WIDTH + x)*3 + 0] = r.color >> 16;
-                texture_data[(y*WIDTH + x)*3 + 1] = r.color >> 8;
-                texture_data[(y*WIDTH + x)*3 + 2] = r.color >> 0;
+            if (y > (HEIGHT - wall_height) / 2 && y < wall_height + (HEIGHT - wall_height) / 2) { //wall detected
+                texture_data[(y * WIDTH + x) * 3] = r.color >> 16;
+                texture_data[(y * WIDTH + x) * 3 + 1] = r.color >> 8;
+                texture_data[(y * WIDTH + x) * 3 + 2] = r.color >> 0;
             } else { //no walls encountered
-                texture_data[(y*WIDTH + x)*3 + 0] = 20;
-                texture_data[(y*WIDTH + x)*3 + 1] = 20;
-                texture_data[(y*WIDTH + x)*3 + 2] = 20;
+                texture_data[(y * WIDTH + x) * 3] = 20;
+                texture_data[(y * WIDTH + x) * 3 + 1] = 20;
+                texture_data[(y * WIDTH + x) * 3 + 2] = 20;
             }
         }
     }
@@ -221,7 +226,7 @@ void poll_events() {
             case SDL_MOUSEMOTION:
                 mouse_move_x = event.motion.xrel; //updates mouse pos and camera accordingly
                 break;
-            case SDL_KEYDOWN:
+          const unsigned int light_color = 0xFFFFFF;  case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
                     case SDLK_ESCAPE:
                         quit = true;
