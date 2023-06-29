@@ -3,20 +3,19 @@
 #include <stdbool.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-
-// Glew must come before opengl
-#include <GL/glew.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
-
+#include <GL/glew.h> // Glew must come before opengl or else it won't work
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #include "../include/window.h"
 #include "../include/shader.h"
 #include "../include/map.h"
 #include "../include/ray.h"
 
-#define WIDTH 800
-#define HEIGHT 600
-#define NUM_THREADS 4
+
+
+#define WIDTH 1920
+#define HEIGHT 1080
+#define NUM_THREADS 10
 
 const char* vertex_shader_source = "#version 300 es\n"
     "precision highp float;\n"
@@ -37,7 +36,7 @@ const char* fragment_shader_source = "#version 300 es\n"
         // "color = vec4(1.0f*TexCoords.x, 0.6f*TexCoords.y, 1.0f, 1.0f);\n"
     "}\0";
 
-const float quadVertexData[] = { 
+const float quad_vertex_data[] = { 
     // pos      // tex
     0.0f, 1.0f, 0.0f, 1.0f,
     1.0f, 0.0f, 1.0f, 0.0f,
@@ -56,7 +55,7 @@ char world[] =
     "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
     "b                 g          g"
     "b                 g          g"
-    "b   p             g          g"
+    "b                 g    p     g"
     "b                 g          g"
     "b                 g          g"
     "b                 g          g"
@@ -86,31 +85,26 @@ const double fov = 100;
 double half_fov;
 double focus_to_image;
 
-const double max_fog_distance = 20;
-const double min_fog_distance = 2;
-const unsigned int fog_color = 0x87CEEB;
-const unsigned int light_color = 0xFFFFFF;
-
 window win = NULL;
 Shader shader = NULL;
-char texture_data[WIDTH*HEIGHT*3];
+char texture_data[WIDTH * HEIGHT * 3];
 GLuint vao = -1;
 GLuint screen_texture = -1;
-
 bool quit = false;
 SDL_Event event;
 
-bool keydown_w = false;
-bool keydown_a = false;
+//I'm french so these are the usual keyboard layouts for us
+bool keydown_z = false;
+bool keydown_q = false;
 bool keydown_s = false;
 bool keydown_d = false;
 bool keydown_left = false;
 bool keydown_right = false;
+double arrow_speed = 3.5;
 
 int mouse_move_x = 0;
 
-void createScreenTexture() {
-
+void create_screen_texture() {
     glGenTextures(1, &screen_texture);
     glBindTexture(GL_TEXTURE_2D, screen_texture);
     
@@ -123,8 +117,7 @@ void createScreenTexture() {
     glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
-void createQuadVAO() {
-
+void create_quad_VAO() {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     
@@ -132,7 +125,7 @@ void createQuadVAO() {
     GLuint vertexBuffer;
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertexData), quadVertexData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_data), quad_vertex_data, GL_STATIC_DRAW);
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -141,80 +134,37 @@ void createQuadVAO() {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 }
 
-unsigned int lerpColor(unsigned int color_1, unsigned int color_2, double lin_val) {
-
-    unsigned int newColor = 0x000000;
-    unsigned int mask = 0xFF;
-
-    newColor |= (unsigned char) (((float)((color_1 >> 16)&mask) * (1-lin_val)) + ((float)((color_2 >> 16)&mask) * lin_val));
-    newColor <<= 8;
-    newColor |= (unsigned char) (((float)((color_1 >> 8)&mask) * (1-lin_val)) + ((float)((color_2 >> 8)&mask) * lin_val));
-    newColor <<= 8;
-    newColor |= (unsigned char) (((float)((color_1 >> 0)&mask) * (1-lin_val)) + ((float)((color_2 >> 0)&mask) * lin_val));
-
-    return newColor;
-}
-
-double getFogAmount(double depth) {
-
-    return (depth > min_fog_distance) ? fmin((depth-min_fog_distance)/(max_fog_distance-min_fog_distance), 0.8) : 0;
-}
-
-void* renderScene(void* thread_num) {
-
+void* render_thread(void* thread_num) {
     float thread_div = (float) WIDTH / NUM_THREADS;
-
     int thread_start = thread_div * *((int*)thread_num);
     int thread_end = thread_div * (*((int*)thread_num) + 1);
-
     for (int x = thread_start; x < thread_end; x++) {
-
         ray r = cast_ray(m, player_position, player_angle + atan((x-(WIDTH/2))/focus_to_image), player_angle);
         int wall_height = (int) (( HEIGHT / (r.depth)));
-
         for (int y = 0; y < HEIGHT; y++) {
-
-            if (y > (HEIGHT-wall_height)/2 && y < wall_height+(HEIGHT-wall_height)/2) {
-
+            if (y > (HEIGHT-wall_height)/2 && y < wall_height+(HEIGHT-wall_height)/2) { //wall detected
                 texture_data[(y*WIDTH + x)*3 + 0] = r.color >> 16;
                 texture_data[(y*WIDTH + x)*3 + 1] = r.color >> 8;
                 texture_data[(y*WIDTH + x)*3 + 2] = r.color >> 0;
-
-            } else {
+            } else { //no walls encountered
                 texture_data[(y*WIDTH + x)*3 + 0] = 0;
                 texture_data[(y*WIDTH + x)*3 + 1] = 0;
                 texture_data[(y*WIDTH + x)*3 + 2] = 0;
             }
         }
     }
-
     pthread_exit(0);
 }
 
 void render() {
-
     for (int it = 0; it < NUM_THREADS; it++) {
-        pthread_create(&(threads[it]), NULL, renderScene, (void*) (&(thread_args[it])));
+        pthread_create(&(threads[it]), NULL, render_thread, (void*) (&(thread_args[it])));
     }
-
     for (int it = 0; it < NUM_THREADS; it++) {
         pthread_join(threads[it], NULL);
     }
-
     glBindTexture(GL_TEXTURE_2D, screen_texture); 
-    
-    glTexSubImage2D(
-        GL_TEXTURE_2D, 
-        0, 
-        0, 
-        0, 
-        WIDTH, 
-        HEIGHT,
-        GL_RGB, 
-        GL_UNSIGNED_BYTE,
-        texture_data
-    );
-    
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT,GL_RGB, GL_UNSIGNED_BYTE,texture_data);
     glClear(GL_COLOR_BUFFER_BIT);
     shader_use(shader);
 
@@ -226,196 +176,141 @@ void render() {
     glBindVertexArray(0);
     glUseProgram(0);
     window_swap(win);
-
     glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
-void updatePlayer(uint64_t delta) {
-
+void update_player(uint64_t delta) {
     // Mouse movement
-    player_angle += mouse_move_x/1000.0 * mouse_sensitivity;
-    
-    // Arrow movement
+    player_angle += mouse_move_x / 1000.0 * mouse_sensitivity;
+    // Left/right arrow movement (to move camera)
     if (keydown_left != keydown_right) {
-
-        float change = (keydown_left) ? -1 : 1;
-        float arrow_speed = 3.5f;
-        player_angle += (delta/1000.0)*change*arrow_speed;
+        float change = (keydown_left) ? -1 : 1; //which direction we're turning
+        player_angle += (delta / 1000.0) * change * arrow_speed;
     }
-
     float x_fraction;
     float y_fraction;
-
-    float mult = (delta/1000.0)*player_speed;
-
-    if ((keydown_w != keydown_s)) {
-
-        mult = keydown_s ? mult*-1 : mult;
-
+    float mult = (delta /1000.0) * player_speed;
+    if ((keydown_z != keydown_s)) {
+        mult = keydown_s ? -mult : mult;
         x_fraction = -sin(player_angle);
         y_fraction = cos(player_angle);
-
-        player_position.x += x_fraction*mult;
-        player_position.y += y_fraction*mult;
+        player_position.x += x_fraction * mult;
+        player_position.y += y_fraction * mult;
     }
-
-    if ((keydown_a != keydown_d)) {
-
-        mult = keydown_s ? mult*-1 : mult;
-
+    if ((keydown_q != keydown_d)) {
+        mult = keydown_s ? -mult : mult;
         float turn_angle = keydown_d ? M_PI_2 : -M_PI_2;
-
         x_fraction = -sin(player_angle + turn_angle);
         y_fraction = cos(player_angle + turn_angle);
-
-        player_position.x += x_fraction*mult;
-        player_position.y += y_fraction*mult;
+        player_position.x += x_fraction * mult;
+        player_position.y += y_fraction * mult;
     }
 }
 
-void pollEvents() {
-
+void poll_events() {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_QUIT:
-                // User clicked the close button, exit loop
-                printf("Quit event received\n");
                 quit = true;
                 break;
-
             case SDL_WINDOWEVENT:
-
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                     glViewport(0, 0, event.window.data1, event.window.data2);
                 }
                 break;
             case SDL_MOUSEMOTION:
-
-                mouse_move_x = event.motion.xrel;
+                mouse_move_x = event.motion.xrel; //updates mouse pos and camera accordingly
                 break;
-
             case SDL_KEYDOWN:
                 switch(event.key.keysym.sym) {
-
                     case SDLK_ESCAPE:
                         quit = true;
                         break;
-
-                    case SDLK_w:
-                        keydown_w = true;
+                    case SDLK_z:
+                        keydown_z = true;
                         break;
-
-                    case SDLK_a:
-                        keydown_a = true;
+                    case SDLK_q:
+                        keydown_q = true;
                         break;
-
                     case SDLK_s:
                         keydown_s = true;
                         break;
-
                     case SDLK_d:
                         keydown_d = true;
                         break;
-                    
                     case SDLK_LEFT:
                         keydown_left = true;
                         break;
-                    
                     case SDLK_RIGHT:
                         keydown_right = true;
                         break;
                 }
                 break;
-
             case SDL_KEYUP:
                 switch(event.key.keysym.sym) {
-
-                    case SDLK_w:
-                        keydown_w = false;
+                    case SDLK_z:
+                        keydown_z = false;
                         break;
-
-                    case SDLK_a:
-                        keydown_a = false;
+                    case SDLK_q:
+                        keydown_q = false;
                         break;
-
                     case SDLK_s:
                         keydown_s = false;
                         break;
-
                     case SDLK_d:
                         keydown_d = false;
                         break;
-
                     case SDLK_LEFT:
                         keydown_left = false;
                         break;
-                    
                     case SDLK_RIGHT:
                         keydown_right = false;
                         break;
                 }
                 break;
-
             default:
-                // Ignore other events
                 break;
         }
     }
 }
 
 int main(void) {
-
     win = window_create(WIDTH, HEIGHT);
-
     m = create_map(world, world_width, world_height, world_scale);
     player_position = get_player_pos(m);
-
-    // Prepare thread args
-    for (int it = 0; it < NUM_THREADS; it++) {
-        thread_args[it] = it;
+    for (int i = 0; i < NUM_THREADS; i++) { //prepare thread args. It's just numbers since each render_thread call determines which part of the buffer the thread deals with
+        thread_args[i] = i;
     }
-
     if (!window_init(win)) {
-
         printf("Failed to initialize SDL\n");
-
     } else {
-
         printf("SDL initialized\n");
 
         shader_init(&shader, vertex_shader_source, fragment_shader_source);
-        createScreenTexture();
+        create_screen_texture();
 
         glClearColor(0.5, 0.2, 0.5, 1.0);
-        createQuadVAO();
+        create_quad_VAO();
 
-        half_fov = (fov/ 180.0f * M_PI)/2.0f;
-        focus_to_image = (WIDTH/2)/tan(half_fov);
+        half_fov = (fov/ 180.0f * M_PI) / 2.0f;
+        focus_to_image = WIDTH  / (2 * tan(half_fov));
 
         uint64_t last_frame = SDL_GetTicks64();
         uint64_t current_frame = SDL_GetTicks64();
         uint64_t delta_time = 0;
 
         while (!quit) {
-
             current_frame = SDL_GetTicks64();
             delta_time = current_frame - last_frame;
             last_frame = current_frame;
-
-            // Poll for events
-            pollEvents();
-            updatePlayer(delta_time);
-
+            poll_events();
+            update_player(delta_time);
             render();
-            // printf("%f %f %f\n", player_position.x, player_position.y, player_angle);
-
-            mouse_move_x = 0;
+            mouse_move_x = 0; //reset mouse movements
         }
     }  
-
     glDeleteBuffers(1, &vao);
     glDeleteTextures(1, &screen_texture);
-
     window_destroy(win);
     shader_destroy(shader);
 
