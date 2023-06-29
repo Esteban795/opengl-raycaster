@@ -70,8 +70,8 @@ It should render this :
 
 ### __What's left to do__ ?
  
-- Maybe add some kind of lighing ?
+- ~~Maybe add some kind of lighing ?~~ ✅ 
 - Textures onto walls ? Right now, it can only display a few colors, but it isn't posssible to display more than a single color per wall. It forces pretty bland designs.
 - Just found out about this [tutorial](https://lodev.org/cgtutor/raycasting.html) with a different algorithm. I might reimplement the ray casting stuff !
-- Allow users to input their own map ! (work in progress, see ```read_world``` function in src/map.c).
+- Allow users to input their own map ! (work in progress, see ```read_world``` function in src/map.c). (almost done)
 - A minimap in one of the two top corners. I need to figure out how to draw this and update our player position.
