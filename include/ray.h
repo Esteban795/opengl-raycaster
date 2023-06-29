@@ -20,4 +20,5 @@ enum Side {
 typedef struct Ray ray;
 
 ray cast_ray(map m,position pos,double ray_angle,double player_angle);
+
 #endif
