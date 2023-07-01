@@ -87,7 +87,7 @@ ray cast_ray(map m, position position, double ray_angle, double player_angle) {
             r.color = 0x000000;
             return r;
         }
-        curr = m->world[map_y*m->width + map_x];
+        curr = m->world[map_y * m->width + map_x];
     } while (curr == ' ' || curr == 'p');
     if ((map_x != prev_map_x) && (map_y != prev_map_y)) {
         //case where ray goes perfectly through a corner and side hit can't be registered. We cast the ray again in a slightly different direction.

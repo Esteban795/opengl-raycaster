@@ -80,7 +80,7 @@ const double world_scale = 10;
 
 position player_position;
 double player_angle = 0;
-const double player_speed = 70;
+const double player_speed = 50;
 const double mouse_sensitivity = 20;
 
 const double fov = 100;
@@ -186,28 +186,42 @@ void render() {
 void update_player(uint64_t delta) {
     // Mouse movement
     player_angle += mouse_move_x / 1000.0 * mouse_sensitivity;
+
     // Left/right arrow movement (to move camera)
     if (keydown_left != keydown_right) {
         float change = (keydown_left) ? -1 : 1; //which direction we're turning
         player_angle += (delta / 1000.0) * change * arrow_speed;
     }
+
+    int nb_tiles = m->width * m->height;
     float x_fraction;
     float y_fraction;
-    float mult = (delta / 1000.0) * player_speed;
-    if ((keydown_z != keydown_s)) {
-        mult = keydown_s ? -mult : mult;
+    float mult = (delta / 1000.0) * player_speed; //lets us modify how fast can people go, using variable delta time to adapt to different refresh rates.
+
+    if (keydown_z != keydown_s) {
+        mult = keydown_s ? -mult : mult; //walking backwards or forwards ?
         x_fraction = -sin(player_angle);
         y_fraction = cos(player_angle);
-        player_position.x += x_fraction * mult;
-        player_position.y += y_fraction * mult;
+        int future_x = (int) ((player_position.x + x_fraction * mult) / m->scale); //future map_x where player will be. Used for wall collision detection.
+        int future_y = (int) ((player_position.y + y_fraction * mult) / m->scale); ///same but with y
+        int map_loc = future_y * m->width + future_x;
+        if (map_loc > nb_tiles || m->world[map_loc] == ' ' || m->world[map_loc] == 'p') { //somehow got out of grid boundaries, or if the next grid case is accessible or if the player stays on the case but only moves a little
+            player_position.x += x_fraction * mult;
+            player_position.y += y_fraction * mult;
+        }
     }
-    if ((keydown_q != keydown_d)) {
+    if (keydown_q != keydown_d) {
         mult = keydown_s ? -mult : mult;
         float turn_angle = keydown_d ? M_PI_2 : -M_PI_2;
         x_fraction = -sin(player_angle + turn_angle);
         y_fraction = cos(player_angle + turn_angle);
-        player_position.x += x_fraction * mult;
-        player_position.y += y_fraction * mult;
+        int future_x = (int) ((player_position.x + x_fraction * mult) / m->scale); 
+        int future_y = (int) ((player_position.y + y_fraction * mult) / m->scale);
+        int map_loc = future_y * m->width + future_x;
+        if ( map_loc > nb_tiles || m->world[map_loc] == ' ' || m->world[map_loc] == 'p') { 
+            player_position.x += x_fraction * mult;
+            player_position.y += y_fraction * mult;
+        }
     }
 }
 

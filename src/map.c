@@ -24,7 +24,6 @@ position get_player_pos(map m){
 }
 
 char* read_world(char* filename,int* world_width,int* world_height){
-    
     FILE* fp = fopen (filename ,"r");
     fscanf(fp,"%d %d\n",world_width,world_height);
     int text_size = *world_height * *world_width;
