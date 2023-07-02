@@ -23,13 +23,48 @@ position get_player_pos(map m){
     return player_pos;
 }
 
-char* read_world(char* filename,int* world_width,int* world_height){
-    FILE* fp = fopen (filename ,"r");
-    fscanf(fp,"%d %d\n",world_width,world_height);
-    int text_size = *world_height * *world_width;
-    char* buffer = malloc(sizeof(char) * (text_size + 1)); //null terminated string
-    fread( buffer,text_size,1, fp);
-    buffer[text_size] = '\0';
-    fclose(fp);
-    return buffer;
+char* import_world(char path[],int* world_width,int* world_height){
+    *world_width = 0;
+    *world_height = 0;
+	FILE* f = fopen(path, "rb");
+	if (f == NULL) {
+		printf("Error! Failed opening file %s\n", path);
+		exit(1);
+	}
+	fseek(f, 0, SEEK_END);
+	long len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	char* data = malloc((len + 1) * sizeof(char));
+	if (data == NULL) { //it happened once and I don't know why ? So I made an edge case
+		printf("Error! Failed allocating memory.\n");
+		exit(2);
+	}
+	int ch;
+	int map_index = 0;
+	int curr_row_len = 0, prev_row_len = 0;
+	int first_row = true;
+	while ((ch = fgetc(f)) != EOF) {
+		switch (ch) {
+            case '\n': //we're done reading a line
+                if (first_row) {
+                    first_row = false;
+                    *world_width = curr_row_len;
+                } else if (curr_row_len != prev_row_len) { //make sure each row is the same size
+                    printf("Map rows have different sizes. Please use a rectangular bounded map.\n");
+                    exit(3);
+                }
+                prev_row_len = curr_row_len;
+                curr_row_len = 0;
+                *world_height += 1;
+                break;
+            default:
+                curr_row_len++;
+                data[map_index++] = ch;
+                break;
+            }
+        }
+	*world_height += 1; // gets updated on newlines only, didnt increment in the very last line ending with EOF
+	fclose(f);
+	data[map_index] = '\0';
+	return data;
 }

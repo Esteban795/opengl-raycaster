@@ -5,6 +5,7 @@
 #include <stdio.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <stdbool.h>
 
 #define M_PI 3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
@@ -28,6 +29,6 @@ map create_map(char* world,int width,int height, double scale);
 
 position get_player_pos(map m);
 
-char* read_world(char* filename,int* world_width,int* world_height);
+char* import_world(char path[],int* world_width,int* world_height);
 
 #endif
